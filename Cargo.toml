@@ -1,0 +1,8 @@
+[package]
+name = "demo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+macroquad = "0.3.23"
+quad-net = { git = "https://github.com/not-fl3/quad-net", rev = "207da3a4b439ec45d878bde3995af8285940ae20" }
