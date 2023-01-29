@@ -1,0 +1,7 @@
+[package]
+name = "demo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ggez = { url = "https://github.com/ggez/ggez.git", revision = "f87f078346729737b4691b9618eab3f95d61c8ad" }
