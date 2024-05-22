@@ -1,32 +1,18 @@
-use std::{thread, time::Duration};
-
-use action::{hello::SayHelloFiveTimesActionBuilder, ActionChange, ActionId};
-use state::{State, StateChange};
+use action::{hello::SayHelloFiveTimesActionBuilder, ActionId};
+use run::RunnerBuilder;
 
 mod action;
+mod run;
 mod state;
 
+// TODO: next_tick_frame
+// TODO: choice + parralel
 fn main() {
-    let mut state = State::new();
-    state.apply(vec![StateChange::Action(ActionChange::New(
-        ActionId::new(),
-        SayHelloFiveTimesActionBuilder::new().build(),
-    ))]);
-
-    loop {
-        // let (update_a, update_b) = thread::scope(|scope| {
-        //     let update_a = scope.spawn(|| job_a(&state));
-        //     let update_b = scope.spawn(|| job_b(&state));
-        //     (update_a.join(), update_b.join())
-        // });
-
-        let mut changes = vec![];
-        for (action_id, action) in state.actions() {
-            changes.extend(action.tick(*action_id, &state))
-        }
-        state.apply(changes);
-
-        // dbg!(&state);
-        thread::sleep(Duration::from_millis(500));
-    }
+    RunnerBuilder::new()
+        .actions(vec![(
+            ActionId::new(),
+            SayHelloFiveTimesActionBuilder::new().build(),
+        )])
+        .build()
+        .run();
 }
