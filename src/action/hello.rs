@@ -7,11 +7,15 @@ const TICK_FREQUENCY: u64 = 1;
 #[derive(Debug, PartialEq)]
 pub struct SayHello {
     counter: usize,
+    value: u64,
 }
 
 impl SayHello {
     fn new() -> Self {
-        Self { counter: 0 }
+        Self {
+            counter: 0,
+            value: 0,
+        }
     }
 }
 
@@ -27,10 +31,17 @@ impl BodyTick<SayHelloChange> for SayHello {
             changes.push(StateChange::Action(id, ActionChange::Remove))
         } else {
             // println!("Hello");
-            changes.push(StateChange::Action(
-                id,
-                ActionChange::Update(UpdateAction::SayHello(SayHelloChange::IncrementCounter)),
-            ))
+            let x: u64 = (1..=1000000).product();
+            changes.extend(vec![
+                StateChange::Action(
+                    id,
+                    ActionChange::Update(UpdateAction::SayHello(SayHelloChange::IncrementCounter)),
+                ),
+                StateChange::Action(
+                    id,
+                    ActionChange::Update(UpdateAction::SayHello(SayHelloChange::SetValue(x))),
+                ),
+            ])
         };
 
         (NextTick(*state.frame_i() + TICK_FREQUENCY), changes)
@@ -39,12 +50,14 @@ impl BodyTick<SayHelloChange> for SayHello {
     fn apply(&mut self, change: SayHelloChange) {
         match change {
             SayHelloChange::IncrementCounter => self.counter += 1,
+            SayHelloChange::SetValue(value) => self.value = value,
         }
     }
 }
 
 pub enum SayHelloChange {
     IncrementCounter,
+    SetValue(u64),
 }
 
 pub struct SayHelloActionBuilder;

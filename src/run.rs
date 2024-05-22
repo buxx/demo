@@ -1,9 +1,10 @@
-use rayon::prelude::*;
-
 use std::{
+    sync::mpsc::{channel, Receiver, Sender},
     thread,
-    time::{Duration, Instant},
+    time::Duration,
 };
+
+use rayon::{ThreadPool, ThreadPoolBuilder};
 
 use crate::{
     action::{Action, ActionChange, ActionId},
@@ -11,42 +12,84 @@ use crate::{
 };
 
 pub struct Runner {
+    workers_count: usize,
     state: State,
 }
 
 impl Runner {
     pub fn new(state: State) -> Self {
-        Runner { state }
+        Runner {
+            workers_count: num_cpus::get(),
+            state,
+        }
     }
 
-    pub fn run(mut self) {
+    pub fn run(&mut self) {
         loop {
-            let start = Instant::now();
-            // let (update_a, update_b) = thread::scope(|scope| {
-            //     let update_a = scope.spawn(|| job_a(&state));
-            //     let update_b = scope.spawn(|| job_b(&state));
-            //     (update_a.join(), update_b.join())
-            // });
-
             let mut state_changes = vec![];
-            for (action_id, action) in self.state.actions().collect::<Vec<(&ActionId, &Action)>>() {
-                let (next, changes) = action.tick(*action_id, &self.state);
-                state_changes.push(StateChange::Action(
-                    *action_id,
-                    ActionChange::SetNextTick(next),
-                ));
-                // NOTE: It is important than SetNextTick is before because changes
-                // can contains action deletion
-                state_changes.extend(changes);
-            }
+            state_changes.extend(self.tick_actions());
 
             self.state.apply(state_changes);
             self.state.increment();
 
-            let duration = start.elapsed();
-            println!("{}ms", duration.as_millis());
             thread::sleep(Duration::from_millis(1000));
         }
+    }
+
+    fn tick_actions(&self) -> Vec<StateChange> {
+        let (tx, rx): (Sender<Vec<StateChange>>, Receiver<Vec<StateChange>>) = channel();
+        let actions: Vec<(&ActionId, &Action)> = self.state.actions().collect();
+        let state_ = &self.state;
+
+        self.pool().scope(|s| {
+            for (start, end) in self.slices(&actions) {
+                let tx = tx.clone();
+                let actions_ = actions.clone();
+
+                s.spawn(move |_| {
+                    for (action_id, action) in &actions_[start..end] {
+                        let mut state_changes = vec![];
+                        let (next, changes) = action.tick(**action_id, state_);
+                        state_changes.push(StateChange::Action(
+                            **action_id,
+                            ActionChange::SetNextTick(next),
+                        ));
+                        // NOTE: It is important than SetNextTick is before because changes
+                        // can contains action deletion
+                        state_changes.extend(changes);
+                        tx.send(state_changes).unwrap()
+                    }
+                })
+            }
+        });
+
+        rx.try_iter()
+            .collect::<Vec<Vec<StateChange>>>()
+            .into_iter()
+            .flatten()
+            .collect()
+    }
+
+    fn slices(&self, actions: &[(&ActionId, &Action)]) -> Vec<(usize, usize)> {
+        let mut slices = vec![];
+        for i in 0..self.workers_count {
+            let slice_len = actions.len() / self.workers_count;
+            let start = slice_len * i;
+            let end = if i != self.workers_count - 1 {
+                start + slice_len
+            } else {
+                actions.len()
+            };
+            slices.push((start, end))
+        }
+        slices
+    }
+
+    fn pool(&self) -> ThreadPool {
+        ThreadPoolBuilder::new()
+            .num_threads(self.workers_count)
+            .build()
+            .unwrap()
     }
 }
 

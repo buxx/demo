@@ -8,7 +8,7 @@ mod state;
 // TODO: choice + parralel
 fn main() {
     let mut actions = vec![];
-    for _ in 0..1_000_000 {
+    for _ in 0..10_000 {
         actions.push((ActionId::new(), SayHelloActionBuilder::new().build()));
     }
 
