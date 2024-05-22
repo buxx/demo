@@ -1,4 +1,4 @@
-use action::{hello::SayHelloFiveTimesActionBuilder, ActionId};
+use action::{hello::SayHelloActionBuilder, ActionId};
 use run::RunnerBuilder;
 
 mod action;
@@ -7,11 +7,10 @@ mod state;
 
 // TODO: choice + parralel
 fn main() {
-    RunnerBuilder::new()
-        .actions(vec![(
-            ActionId::new(),
-            SayHelloFiveTimesActionBuilder::new().build(),
-        )])
-        .build()
-        .run();
+    let mut actions = vec![];
+    for _ in 0..1_000_000 {
+        actions.push((ActionId::new(), SayHelloActionBuilder::new().build()));
+    }
+
+    RunnerBuilder::new().actions(actions).build().run();
 }

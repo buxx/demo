@@ -5,17 +5,17 @@ use super::{Action, ActionChange, BodyTick, NextTick};
 const TICK_FREQUENCY: u64 = 1;
 
 #[derive(Debug, PartialEq)]
-pub struct SayHelloFiveTimes {
+pub struct SayHello {
     counter: usize,
 }
 
-impl SayHelloFiveTimes {
+impl SayHello {
     fn new() -> Self {
         Self { counter: 0 }
     }
 }
 
-impl BodyTick<SayHelloFiveTimesChange> for SayHelloFiveTimes {
+impl BodyTick<SayHelloChange> for SayHello {
     fn tick(
         &self,
         id: super::ActionId,
@@ -26,37 +26,35 @@ impl BodyTick<SayHelloFiveTimesChange> for SayHelloFiveTimes {
         if self.counter == 5 {
             changes.push(StateChange::Action(id, ActionChange::Remove))
         } else {
-            println!("Hello");
+            // println!("Hello");
             changes.push(StateChange::Action(
                 id,
-                ActionChange::Update(UpdateAction::SayHelloFiveTimes(
-                    SayHelloFiveTimesChange::IncrementCounter,
-                )),
+                ActionChange::Update(UpdateAction::SayHello(SayHelloChange::IncrementCounter)),
             ))
         };
 
         (NextTick(*state.frame_i() + TICK_FREQUENCY), changes)
     }
 
-    fn apply(&mut self, change: SayHelloFiveTimesChange) {
+    fn apply(&mut self, change: SayHelloChange) {
         match change {
-            SayHelloFiveTimesChange::IncrementCounter => self.counter += 1,
+            SayHelloChange::IncrementCounter => self.counter += 1,
         }
     }
 }
 
-pub enum SayHelloFiveTimesChange {
+pub enum SayHelloChange {
     IncrementCounter,
 }
 
-pub struct SayHelloFiveTimesActionBuilder;
+pub struct SayHelloActionBuilder;
 
-impl SayHelloFiveTimesActionBuilder {
+impl SayHelloActionBuilder {
     pub fn new() -> Self {
         Self {}
     }
 
     pub fn build(&self) -> Action {
-        Action::SayHelloFiveTimes(SayHelloFiveTimes::new())
+        Action::SayHello(SayHello::new())
     }
 }

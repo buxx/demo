@@ -1,4 +1,9 @@
-use std::{thread, time::Duration};
+use rayon::prelude::*;
+
+use std::{
+    thread,
+    time::{Duration, Instant},
+};
 
 use crate::{
     action::{Action, ActionChange, ActionId},
@@ -16,6 +21,7 @@ impl Runner {
 
     pub fn run(mut self) {
         loop {
+            let start = Instant::now();
             // let (update_a, update_b) = thread::scope(|scope| {
             //     let update_a = scope.spawn(|| job_a(&state));
             //     let update_b = scope.spawn(|| job_b(&state));
@@ -23,7 +29,7 @@ impl Runner {
             // });
 
             let mut state_changes = vec![];
-            for (action_id, action) in self.state.actions() {
+            for (action_id, action) in self.state.actions().collect::<Vec<(&ActionId, &Action)>>() {
                 let (next, changes) = action.tick(*action_id, &self.state);
                 state_changes.push(StateChange::Action(
                     *action_id,
@@ -37,7 +43,9 @@ impl Runner {
             self.state.apply(state_changes);
             self.state.increment();
 
-            thread::sleep(Duration::from_millis(500));
+            let duration = start.elapsed();
+            println!("{}ms", duration.as_millis());
+            thread::sleep(Duration::from_millis(1000));
         }
     }
 }

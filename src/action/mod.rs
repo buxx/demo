@@ -3,23 +3,23 @@ use uuid::Uuid;
 
 use crate::state::{FrameI, State, StateChange};
 
-use self::hello::{SayHelloFiveTimes, SayHelloFiveTimesChange};
+use self::hello::{SayHello, SayHelloChange};
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
-    SayHelloFiveTimes(SayHelloFiveTimes),
+    SayHello(SayHello),
 }
 
 impl Action {
     pub fn tick(&self, id: ActionId, state: &State) -> (NextTick, Vec<StateChange>) {
         match self {
-            Self::SayHelloFiveTimes(body) => body.tick(id, state),
+            Self::SayHello(body) => body.tick(id, state),
         }
     }
 
     pub fn apply(&mut self, change: UpdateAction) {
         match (self, change) {
-            (Self::SayHelloFiveTimes(body), UpdateAction::SayHelloFiveTimes(action_change)) => {
+            (Self::SayHello(body), UpdateAction::SayHello(action_change)) => {
                 body.apply(action_change)
             }
         }
@@ -42,7 +42,7 @@ pub enum ActionChange {
 }
 
 pub enum UpdateAction {
-    SayHelloFiveTimes(SayHelloFiveTimesChange),
+    SayHello(SayHelloChange),
 }
 
 pub trait BodyTick<T> {
