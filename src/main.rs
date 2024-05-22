@@ -5,7 +5,6 @@ mod action;
 mod run;
 mod state;
 
-// TODO: next_tick_frame
 // TODO: choice + parralel
 fn main() {
     RunnerBuilder::new()

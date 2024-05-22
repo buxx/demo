@@ -22,13 +22,21 @@ impl Runner {
             //     (update_a.join(), update_b.join())
             // });
 
-            let mut changes = vec![];
+            let mut state_changes = vec![];
             for (action_id, action) in self.state.actions() {
-                changes.extend(action.tick(*action_id, &self.state))
+                let (next, changes) = action.tick(*action_id, &self.state);
+                state_changes.push(StateChange::Action(
+                    *action_id,
+                    ActionChange::SetNextTick(next),
+                ));
+                // NOTE: It is important than SetNextTick is before because changes
+                // can contains action deletion
+                state_changes.extend(changes);
             }
-            self.state.apply(changes);
 
-            // dbg!(&state);
+            self.state.apply(state_changes);
+            self.state.increment();
+
             thread::sleep(Duration::from_millis(500));
         }
     }
@@ -52,9 +60,10 @@ impl RunnerBuilder {
         let mut state = State::new();
 
         for (action_id, action) in self.actions {
-            state.apply(vec![StateChange::Action(ActionChange::New(
-                action_id, action,
-            ))]);
+            state.apply(vec![StateChange::Action(
+                action_id,
+                ActionChange::New(action),
+            )]);
         }
 
         Runner::new(state)
