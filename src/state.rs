@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::action::{Action, ActionChange, ActionId};
 
 pub struct State {
+    frame_i: FrameI,
     actions: HashMap<ActionId, Action>,
 }
 
@@ -25,6 +26,7 @@ impl State {
 
     pub fn new() -> Self {
         Self {
+            frame_i: FrameI(0),
             actions: HashMap::new(),
         }
     }
@@ -37,3 +39,6 @@ impl State {
 pub enum StateChange {
     Action(ActionChange),
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct FrameI(u64);
