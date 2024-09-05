@@ -1,16 +1,55 @@
-use action::{hello::SayHelloActionBuilder, ActionId};
-use run::RunnerBuilder;
+//! Run with:
+//!
+//! ```sh
+//! dx serve --platform fullstack
+//! ```
 
-mod action;
-mod run;
-mod state;
+#![allow(non_snake_case, unused)]
+use dioxus::prelude::*;
+use serde::{Deserialize, Serialize};
 
-// TODO: choice + parralel
-fn main() {
-    let mut actions = vec![];
-    for _ in 0..10_000 {
-        actions.push((ActionId::new(), SayHelloActionBuilder::new().build()));
+fn app() -> Element {
+    let mut count = use_signal(|| 0);
+    let mut text = use_signal(|| "...".to_string());
+    let server_future = use_server_future(get_server_data)?;
+
+    rsx! {
+        h1 { "High-Five counter: {count}" }
+        button { onclick: move |_| count += 1, "Up high!" }
+        button { onclick: move |_| count -= 1, "Down low!" }
+        button {
+            onclick: move |_| async move {
+                if let Ok(data) = get_server_data().await {
+                    println!("Client received: {}", data);
+                    text.set(data.clone());
+                    post_server_data(data).await.unwrap();
+                }
+            },
+            "Run a server function!"
+        }
+        "Server said: {text}"
+        "{server_future.state():?}"
     }
+}
 
-    RunnerBuilder::new().actions(actions).build().run();
+#[server]
+async fn post_server_data(data: String) -> Result<(), ServerFnError> {
+    println!("Server received: {}", data);
+
+    Ok(())
+}
+
+#[server]
+async fn get_server_data() -> Result<String, ServerFnError> {
+    Ok("Hello world".to_string())
+}
+
+fn main() {
+    #[cfg(feature = "web")]
+    tracing_wasm::set_as_global_default();
+
+    #[cfg(feature = "server")]
+    tracing_subscriber::fmt::init();
+
+    launch(app);
 }
