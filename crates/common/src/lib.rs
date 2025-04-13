@@ -1,3 +1,4 @@
+pub mod user;
 pub struct System<T> {
     pub components: Vec<Box<dyn Component<T>>>,
 }
@@ -14,7 +15,7 @@ impl<T> System<T> {
 }
 
 pub enum Item<T> {
-    Component(T)
+    Component(T),
 }
 
 pub trait Component<T> {
@@ -33,4 +34,3 @@ pub trait IntoOtherComponentItem<T> {
 // pub trait IntoItem<T> {
 //     fn into_item(self) -> Item<T>;
 // }
-

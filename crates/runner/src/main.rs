@@ -1,6 +1,6 @@
-use common::{FromComponentItem, IntoOtherComponentItem, System};
-use component1::{Component1, Component1Item};
-use component2::{Component2, Component2Item};
+use archives::{ArchiverItem, ArchivesComponent};
+use common::{Component, FromComponentItem, IntoOtherComponentItem, System};
+use users::{UsersComponents, UsersItem};
 
 macro_rules! items {
     ( $( [$name:ident, $event:ident] ),* ) => {
@@ -18,23 +18,29 @@ macro_rules! items {
     };
 }
 
-items!([Component1, Component1Item], [Component2, Component2Item]);
+items!(
+    [UsersComponents, UsersItem],
+    [ArchivesComponent, ArchiverItem]
+);
 
-
-impl IntoOtherComponentItem<component1::OtherComponentItem> for ComponentItem {
-    fn into_other_component_item(&self) -> Option<component1::OtherComponentItem> {
+// TODO: procedural macro ?
+impl IntoOtherComponentItem<archives::SystemEvent> for ComponentItem {
+    fn into_other_component_item(&self) -> Option<archives::SystemEvent> {
         match self {
-            ComponentItem::Component1(_item) => todo!(),
-            ComponentItem::Component2(item) => match item {
-                Component2Item::AKindOfWork => Some(component1::OtherComponentItem::Component2AKindOfWork),
+            ComponentItem::ArchivesComponent(_item) => None,
+            ComponentItem::UsersComponents(item) => match item {
+                UsersItem::CreatedUser(user) => Some(archives::SystemEvent::Users(
+                    archives::UsersSystemEvent::Created(user.clone()),
+                )),
             },
         }
     }
 }
 
 fn main() {
-    let component1 = Component1;
-    let component2 = Component2;
-    let system: System<ComponentItem> = System {components: vec![Box::new(component1), Box::new(component2)] };
+    let users = UsersComponents;
+    let archives = ArchivesComponent;
+    let c: Vec<Box<dyn Component<ComponentItem>>> = vec![Box::new(users), Box::new(archives)];
+    let system: System<ComponentItem> = System { components: c };
     system.work();
 }

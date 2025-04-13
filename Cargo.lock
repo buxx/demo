@@ -3,28 +3,28 @@
 version = 4
 
 [[package]]
+name = "archives"
+version = "0.1.0"
+dependencies = [
+ "common",
+]
+
+[[package]]
 name = "common"
 version = "0.1.0"
-
-[[package]]
-name = "component1"
-version = "0.1.0"
-dependencies = [
- "common",
-]
-
-[[package]]
-name = "component2"
-version = "0.1.0"
-dependencies = [
- "common",
-]
 
 [[package]]
 name = "runner"
 version = "0.1.0"
 dependencies = [
+ "archives",
  "common",
- "component1",
- "component2",
+ "users",
+]
+
+[[package]]
+name = "users"
+version = "0.1.0"
+dependencies = [
+ "common",
 ]

@@ -5,5 +5,5 @@ edition = "2021"
 
 [dependencies]
 common = { path = "../common" }
-component1 = { path = "../component1" }
-component2 = { path = "../component2" }
+users = { path = "../component-users" }
+archives = { path = "../component-archives" }

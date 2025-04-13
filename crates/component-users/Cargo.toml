@@ -1,5 +1,5 @@
 [package]
-name = "component1"
+name = "users"
 version = "0.1.0"
 edition = "2021"
 
