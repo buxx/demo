@@ -1,8 +1,8 @@
-use common::{user::User, Component, FromComponentItem, IntoOtherComponentItem, Item};
+use common::{user::User, Component, FromComponentItem, AsOtherComponentItem, Item};
 
 pub struct ArchivesComponent;
 
-impl<T: FromComponentItem<ArchiverItem> + IntoOtherComponentItem<SystemEvent>> Component<T>
+impl<T: FromComponentItem<ArchiverItem> + AsOtherComponentItem<SystemEvent>> Component<T>
     for ArchivesComponent
 {
     fn work(&self) -> Item<T> {
@@ -12,7 +12,7 @@ impl<T: FromComponentItem<ArchiverItem> + IntoOtherComponentItem<SystemEvent>> C
     fn react(&self, item: &Item<T>) {
         match item {
             Item::Component(item) => {
-                if let Some(item) = item.into_other_component_item() {
+                if let Some(item) = item.clone().as_other_component_item() {
                     match item {
                         SystemEvent::Users(UsersSystemEvent::Created(user)) => {
                             println!("Archive user: {}", user.0)

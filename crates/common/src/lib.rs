@@ -27,10 +27,6 @@ pub trait FromComponentItem<T> {
     fn from_component_item(value: T) -> Self;
 }
 
-pub trait IntoOtherComponentItem<T> {
-    fn into_other_component_item(&self) -> Option<T>;
+pub trait AsOtherComponentItem<T> {
+    fn as_other_component_item(&self) -> Option<T>;
 }
-
-// pub trait IntoItem<T> {
-//     fn into_item(self) -> Item<T>;
-// }

@@ -1,5 +1,5 @@
 use archives::{ArchiverItem, ArchivesComponent};
-use common::{Component, FromComponentItem, IntoOtherComponentItem, System};
+use common::{Component, FromComponentItem, AsOtherComponentItem, System};
 use users::{UsersComponents, UsersItem};
 
 macro_rules! items {
@@ -20,8 +20,8 @@ macro_rules! items {
 
 macro_rules! convert {
     ($target_type:ty, $($pattern:pat => $result:expr),* $(,)?) => {
-        impl IntoOtherComponentItem<$target_type> for ComponentItem {
-            fn into_other_component_item(&self) -> Option<$target_type> {
+        impl AsOtherComponentItem<$target_type> for ComponentItem {
+            fn as_other_component_item(&self) -> Option<$target_type> {
                 match self {
                     ComponentItem::ArchivesComponent(_) => None,
                     $(
