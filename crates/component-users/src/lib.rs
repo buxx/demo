@@ -14,4 +14,5 @@ impl<T: FromComponentItem<UsersItem>> Component<T> for UsersComponents {
 
 pub enum UsersItem {
     CreatedUser(User),
+    DeletedUser(User),
 }

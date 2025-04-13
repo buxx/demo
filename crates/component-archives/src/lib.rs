@@ -16,6 +16,9 @@ impl<T: FromComponentItem<ArchiverItem> + IntoOtherComponentItem<SystemEvent>> C
                     match item {
                         SystemEvent::Users(UsersSystemEvent::Created(user)) => {
                             println!("Archive user: {}", user.0)
+                        },
+                        SystemEvent::Users(UsersSystemEvent::Deleted(user)) => {
+                            println!("Archive deleted user: {}", user.0)
                         }
                     }
                 }
@@ -34,4 +37,5 @@ pub enum SystemEvent {
 
 pub enum UsersSystemEvent {
     Created(User),
+    Deleted(User),
 }

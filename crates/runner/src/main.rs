@@ -18,24 +18,36 @@ macro_rules! items {
     };
 }
 
+macro_rules! convert {
+    ($target_type:ty, $($pattern:pat => $result:expr),* $(,)?) => {
+        impl IntoOtherComponentItem<$target_type> for ComponentItem {
+            fn into_other_component_item(&self) -> Option<$target_type> {
+                match self {
+                    ComponentItem::ArchivesComponent(_) => None,
+                    $(
+                        $pattern => Some($result),
+                    )*
+                }
+            }
+        }
+    };
+}
+
 items!(
     [UsersComponents, UsersItem],
     [ArchivesComponent, ArchiverItem]
 );
 
-// TODO: procedural macro ?
-impl IntoOtherComponentItem<archives::SystemEvent> for ComponentItem {
-    fn into_other_component_item(&self) -> Option<archives::SystemEvent> {
-        match self {
-            ComponentItem::ArchivesComponent(_item) => None,
-            ComponentItem::UsersComponents(item) => match item {
-                UsersItem::CreatedUser(user) => Some(archives::SystemEvent::Users(
-                    archives::UsersSystemEvent::Created(user.clone()),
-                )),
-            },
-        }
+
+convert!(
+    archives::SystemEvent,
+    ComponentItem::UsersComponents(UsersItem::CreatedUser(user)) => {
+        archives::SystemEvent::Users(archives::UsersSystemEvent::Created(user.clone()))
+    },
+    ComponentItem::UsersComponents(UsersItem::DeletedUser(user)) => {
+        archives::SystemEvent::Users(archives::UsersSystemEvent::Deleted(user.clone()))
     }
-}
+);
 
 fn main() {
     let users = UsersComponents;
