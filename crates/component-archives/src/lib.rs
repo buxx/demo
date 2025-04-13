@@ -12,7 +12,7 @@ impl<T: FromComponentItem<ArchiverItem> + AsOtherComponentItem<SystemEvent>> Com
     fn react(&self, item: &Item<T>) {
         match item {
             Item::Component(item) => {
-                if let Some(item) = item.clone().as_other_component_item() {
+                if let Some(item) = item.as_other_component_item() {
                     match item {
                         SystemEvent::Users(UsersSystemEvent::Created(user)) => {
                             println!("Archive user: {}", user.0)

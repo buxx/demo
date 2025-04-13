@@ -19,14 +19,19 @@ macro_rules! items {
 }
 
 macro_rules! convert {
-    ($target_type:ty, $($pattern:pat => $result:expr),* $(,)?) => {
+    ($target_type:ty, $outer_variant:path, { $($inner_pattern:pat => $result:expr),* $(,)? }) => {
         impl AsOtherComponentItem<$target_type> for ComponentItem {
             fn as_other_component_item(&self) -> Option<$target_type> {
+                #[allow(unreachable_patterns)]
                 match self {
                     ComponentItem::ArchivesComponent(_) => None,
-                    $(
-                        $pattern => Some($result),
-                    )*
+                    $outer_variant(inner) => match inner {
+                        $(
+                            $inner_pattern => Some($result),
+                        )*
+                        _ => None,
+                    },
+                    _ => None,
                 }
             }
         }
@@ -41,11 +46,14 @@ items!(
 
 convert!(
     archives::SystemEvent,
-    ComponentItem::UsersComponents(UsersItem::CreatedUser(user)) => {
-        archives::SystemEvent::Users(archives::UsersSystemEvent::Created(user.clone()))
-    },
-    ComponentItem::UsersComponents(UsersItem::DeletedUser(user)) => {
-        archives::SystemEvent::Users(archives::UsersSystemEvent::Deleted(user.clone()))
+    ComponentItem::UsersComponents,
+    {
+        UsersItem::CreatedUser(user) => archives::SystemEvent::Users(
+            archives::UsersSystemEvent::Created(user.clone())
+        ),
+        UsersItem::DeletedUser(user) => archives::SystemEvent::Users(
+            archives::UsersSystemEvent::Deleted(user.clone())
+        )
     }
 );
 
